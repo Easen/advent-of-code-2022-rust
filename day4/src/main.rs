@@ -16,31 +16,44 @@ impl Range {
         }
     }
 
-    pub fn contains(&self, other: &Range) -> bool {
+    pub fn contains_all(&self, other: &Range) -> bool {
         self.lower <= other.lower && self.upper >= other.upper
+    }
+
+    pub fn overlaps(&self, other: &Range) -> bool {
+        self.contains_all(other) || other.contains_all(self)
+    }
+
+    pub fn partial_overlap(&self, other: &Range) -> bool {
+        self.upper >= other.lower && other.upper >= self.lower
     }
 }
 
 fn main() -> io::Result<()> {
     let file = File::open("./input").unwrap();
     let reader = BufReader::new(file);
-    let mut total_overlap = 0;
-    for line in reader.lines() {
-        let line = line?;
-        let parts: Vec<&str> = line.split(",").collect();
-        let range1 = Range::new(parts[0]);
-        let range2 = Range::new(parts[1]);
+    let total_overlap = reader
+        .lines()
+        .map(|line| {
+            line.unwrap()
+                .split(",")
+                .map(Range::new)
+                .collect::<Vec<Range>>()
+        })
+        .map(|pair| {
+            (
+                pair[0].overlaps(&pair[1]) as u32,
+                pair[0].partial_overlap(&pair[1]) as u32,
+            )
+        })
+        .map(|t| {
+            println!("tuple {:?}", t);
+            t
+        })
+        .reduce(|total, item| (total.0 + item.0, total.1 + item.1))
+        .unwrap_or((0, 0));
 
-        if range1.contains(&range2) || range2.contains(&range1) {
-            total_overlap = total_overlap + 1;
-        }
-
-        println!(
-            "line = {}, range1 = {:?}, range2 = {:?}, range 1 contains range 2 = {:?}, range 2 contains range 1 = {:?}",
-            line, range1, range2, range1.contains(&range2), range2.contains(&range1)
-        )
-    }
-    println!("total_overlap: {}", total_overlap);
+    println!("total_overlap: {:?}", total_overlap);
 
     Ok(())
 }
