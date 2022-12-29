@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
+use std::ops::AddAssign;
 
 fn main() -> io::Result<()> {
     let file = File::open("./input").unwrap();
@@ -30,15 +31,16 @@ fn main() -> io::Result<()> {
         );
     }
 
-    let mut max = 0;
-    for (key, val) in totals.iter() {
-        if val > &max {
-            println!("val {} > max {}", val, max);
-            max = *val;
-        }
+    let mut sorted: Vec<_> = totals.iter().collect();
+    sorted.sort_by_key(|a| !a.1);
+    let mut total = 0;
+    for i in 0..3 {
+        let entry = sorted.iter().nth(i).unwrap();
+        println!("Top {}: {} {}", i + 1, entry.0, entry.1);
+        total.add_assign(entry.1);
     }
 
-    println!("{}", max);
+    println!("sum of top 3: {}", total);
 
     Ok(())
 }
