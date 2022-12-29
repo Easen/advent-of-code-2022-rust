@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
+use std::ops::AddAssign;
 
 fn diff_strings(a: &str, b: &str) -> Vec<char> {
     let mut result: Vec<char> = Vec::new();
@@ -29,6 +30,8 @@ fn main() -> io::Result<()> {
     let file = File::open("./input").unwrap();
     let reader = BufReader::new(file);
     let mut total_priority_sum = 0;
+    let mut total_badge_sum = 0;
+    let mut badge_buffer: Vec<String> = Vec::new();
     for line in reader.lines() {
         let line = line?;
         let len = line.len();
@@ -41,14 +44,32 @@ fn main() -> io::Result<()> {
             .map(|&c| calculate_priority(c))
             .reduce(|a, b| a + b);
 
-        total_priority_sum = total_priority_sum + priority_sum.unwrap_or(0);
+        total_priority_sum.add_assign(priority_sum.unwrap_or(0));
 
         println!(
             "part1 = {}, part2 = {}, diff = {:?}, priority_sum = {:?}",
             part1, part2, diff, priority_sum
-        )
+        );
+
+        badge_buffer.push(line);
+
+        if badge_buffer.len() == 3 {
+            let buffer = badge_buffer.split_off(0);
+            let d1 = diff_strings(buffer[0].as_str(), buffer[1].as_str());
+            let d2 = diff_strings(buffer[1].as_str(), buffer[2].as_str());
+            let d3 = diff_strings(
+                d1.into_iter().collect::<String>().as_str(),
+                d2.into_iter().collect::<String>().as_str(),
+            );
+
+            let priority = calculate_priority(*d3.get(0).unwrap());
+
+            println!("badge: {:?}", d3);
+            total_badge_sum.add_assign(priority);
+        }
     }
     println!("total_priority_sum: {}", total_priority_sum);
+    println!("total_badge_sum: {}", total_badge_sum);
 
     Ok(())
 }
