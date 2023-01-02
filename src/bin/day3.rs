@@ -1,6 +1,4 @@
 use std::collections::HashSet;
-use std::fs::File;
-use std::io::{self, prelude::*, BufReader};
 use std::ops::AddAssign;
 
 fn diff_strings(a: &str, b: &str) -> Vec<char> {
@@ -26,14 +24,13 @@ fn calculate_priority(c: char) -> u32 {
     0
 }
 
-fn main() -> io::Result<()> {
-    let file = File::open("./input").unwrap();
-    let reader = BufReader::new(file);
+fn main() {
+    let input = include_str!("../../inputs/3.txt");
+
     let mut total_priority_sum = 0;
     let mut total_badge_sum = 0;
     let mut badge_buffer: Vec<String> = Vec::new();
-    for line in reader.lines() {
-        let line = line?;
+    for line in input.lines() {
         let len = line.len();
         let part1 = &line[..(len / 2)];
         let part2 = &line[(len / 2)..];
@@ -46,12 +43,7 @@ fn main() -> io::Result<()> {
 
         total_priority_sum.add_assign(priority_sum.unwrap_or(0));
 
-        println!(
-            "part1 = {}, part2 = {}, diff = {:?}, priority_sum = {:?}",
-            part1, part2, diff, priority_sum
-        );
-
-        badge_buffer.push(line);
+        badge_buffer.push(line.to_string());
 
         if badge_buffer.len() == 3 {
             let buffer = badge_buffer.split_off(0);
@@ -64,12 +56,18 @@ fn main() -> io::Result<()> {
 
             let priority = calculate_priority(*d3.get(0).unwrap());
 
-            println!("badge: {:?}", d3);
             total_badge_sum.add_assign(priority);
         }
     }
-    println!("total_priority_sum: {}", total_priority_sum);
-    println!("total_badge_sum: {}", total_badge_sum);
-
-    Ok(())
+    println!("part1: {}", total_priority_sum);
+    println!("part2: {}", total_badge_sum);
 }
+
+/*
+vJrwpWtwJgWrhcsFMMfFFhFp
+jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+PmmdzqPrVvPwwTWBwg
+wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+ttgJtRGJQctTZtZT
+CrZsJsPPZsGzwwsLwLmpwMDw
+ */

@@ -1,5 +1,3 @@
-use std::fs::File;
-use std::io::{self, prelude::*, BufReader};
 use std::ops::AddAssign;
 
 fn strategy_1(inputs: Vec<&str>) -> u32 {
@@ -9,7 +7,6 @@ fn strategy_1(inputs: Vec<&str>) -> u32 {
         "Z" => 3, // scissors
         _ => 0,
     };
-    println!("score_shape: {}", score_shape);
 
     let score_match = match inputs[0] {
         // rock
@@ -35,11 +32,7 @@ fn strategy_1(inputs: Vec<&str>) -> u32 {
         },
         _ => 0,
     };
-    println!("score_match: {}", score_match);
-    let round_total = score_shape + score_match;
-    println!("round total: {}", round_total);
-
-    return round_total;
+    score_shape + score_match
 }
 
 fn strategy_2(inputs: Vec<&str>) -> u32 {
@@ -49,7 +42,6 @@ fn strategy_2(inputs: Vec<&str>) -> u32 {
         "Z" => 6, // win
         _ => 0,
     };
-    println!("score_shape: {}", round_aim);
 
     let score_match = match inputs[0] {
         // rock
@@ -75,24 +67,24 @@ fn strategy_2(inputs: Vec<&str>) -> u32 {
         },
         _ => 0,
     };
-    println!("score_match: {}", score_match);
-    let round_total = round_aim + score_match;
-    println!("round total: {}", round_total);
-
-    return round_total;
+    round_aim + score_match
 }
 
-fn main() -> io::Result<()> {
-    let file = File::open("./input").unwrap();
-    let reader = BufReader::new(file);
-    let mut total_score = 0;
-    for line in reader.lines() {
-        let line = line?;
+fn main() {
+    let input = include_str!("../../inputs/2.txt");
+    let mut part1 = 0;
+    let mut part2 = 0;
+    for line in input.lines() {
         let inputs: Vec<&str> = line.split_whitespace().collect();
-
-        total_score.add_assign(strategy_2(inputs));
+        part1.add_assign(strategy_1(inputs.clone()));
+        part2.add_assign(strategy_2(inputs.clone()));
     }
-    println!("total score: {}", total_score);
-
-    Ok(())
+    println!("part1: {}", part1);
+    println!("part2: {}", part2);
 }
+
+/*
+A Y
+B X
+C Z
+ */

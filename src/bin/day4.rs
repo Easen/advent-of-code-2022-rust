@@ -1,6 +1,3 @@
-use std::fs::File;
-use std::io::{self, prelude::*, BufReader};
-
 #[derive(Debug)]
 struct Range {
     lower: u32,
@@ -29,31 +26,29 @@ impl Range {
     }
 }
 
-fn main() -> io::Result<()> {
-    let file = File::open("./input").unwrap();
-    let reader = BufReader::new(file);
-    let total_overlap = reader
+fn main() {
+    let input = include_str!("../../inputs/4.txt");
+    let total_overlap = input
         .lines()
-        .map(|line| {
-            line.unwrap()
-                .split(",")
-                .map(Range::new)
-                .collect::<Vec<Range>>()
-        })
+        .map(|line| line.split(",").map(Range::new).collect::<Vec<Range>>())
         .map(|pair| {
             (
                 pair[0].overlaps(&pair[1]) as u32,
                 pair[0].partial_overlap(&pair[1]) as u32,
             )
         })
-        .map(|t| {
-            println!("tuple {:?}", t);
-            t
-        })
         .reduce(|total, item| (total.0 + item.0, total.1 + item.1))
         .unwrap_or((0, 0));
 
-    println!("total_overlap: {:?}", total_overlap);
-
-    Ok(())
+    println!("part1: {:?}", total_overlap.0);
+    println!("part2: {:?}", total_overlap.1);
 }
+
+/*
+2-4,6-8
+2-3,4-5
+5-7,7-9
+2-8,3-7
+6-6,4-6
+2-6,4-8
+*/

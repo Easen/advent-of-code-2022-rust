@@ -1,26 +1,7 @@
 use core::str;
 use path_absolutize::*;
-use std::fs::File;
-use std::io::Read;
+use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
-use std::{
-    collections::{HashMap, VecDeque},
-    io,
-};
-
-struct FileNode {
-    name: String,
-    size: usize,
-}
-
-impl FileNode {
-    pub fn new(name: &str, size: usize) -> Self {
-        Self {
-            name: String::from(name),
-            size,
-        }
-    }
-}
 
 struct Directory {
     dirs: HashMap<PathBuf, usize>,
@@ -134,17 +115,13 @@ impl Directory {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut file = File::open("./input_real").unwrap();
-    let mut buffer = String::new();
+fn main() {
+    let input = include_str!("../../inputs/7.txt");
 
-    file.read_to_string(&mut buffer)?;
+    let file_directory = Directory::parse_input(input).unwrap();
 
-    let file_directory = Directory::parse_input(&buffer).unwrap();
-
-    println!("part 1: {}", file_directory.part1().unwrap());
-    println!("part 2: {}", file_directory.part2().unwrap());
-    Ok(())
+    println!("part1: {}", file_directory.part1().unwrap());
+    println!("part2: {}", file_directory.part2().unwrap());
 }
 
 #[cfg(test)]

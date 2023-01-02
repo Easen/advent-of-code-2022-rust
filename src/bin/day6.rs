@@ -1,9 +1,4 @@
-use std::{
-    collections::HashSet,
-    fs::File,
-    io::{self, Read},
-    ops::AddAssign,
-};
+use std::{collections::HashSet, ops::AddAssign};
 
 fn decode_datastream(datastream: &str, marker_len: usize) -> Option<usize> {
     if datastream.len() < marker_len {
@@ -25,25 +20,16 @@ fn decode_datastream(datastream: &str, marker_len: usize) -> Option<usize> {
     }
     None
 }
-fn main() -> io::Result<()> {
-    let mut file = File::open("./input_real").unwrap();
-    let mut buffer = String::new();
+fn main() {
+    let input = include_str!("../../inputs/6.txt");
 
-    file.read_to_string(&mut buffer)?;
-
-    if let Some(marker) = decode_datastream(buffer.as_str(), 4) {
-        println!("Start-of-packet Marker: {}", marker);
-    } else {
-        println!("No Start-of-packet found");
+    if let Some(marker) = decode_datastream(input, 4) {
+        println!("part1: {}", marker);
     }
 
-    if let Some(marker) = decode_datastream(buffer.as_str(), 14) {
-        println!("Start-of-message Marker: {}", marker);
-    } else {
-        println!("No Start-of-message found");
+    if let Some(marker) = decode_datastream(input, 14) {
+        println!("part2: {}", marker);
     }
-
-    Ok(())
 }
 
 #[cfg(test)]

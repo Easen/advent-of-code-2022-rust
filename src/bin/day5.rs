@@ -1,11 +1,8 @@
 use once_cell::sync::Lazy;
+use regex::Regex;
 use std::cell::RefCell;
 use std::collections::VecDeque;
-use std::fs::File;
-use std::io::{self, prelude::*, BufReader};
-use std::ops::{Deref, DerefMut};
-
-use regex::Regex;
+use std::ops::DerefMut;
 
 #[derive(Debug)]
 struct Crate {
@@ -26,14 +23,6 @@ struct Stack {
 impl Stack {
     pub fn new(crates: Vec<Crate>) -> Self {
         Self { crates }
-    }
-
-    pub fn drop(&mut self, c: Crate) {
-        self.crates.push(c)
-    }
-
-    pub fn pick_up(&mut self) -> Option<Crate> {
-        self.crates.pop()
     }
 
     pub fn move_crates(&mut self, number: usize, dest: &mut Stack) {
@@ -61,21 +50,27 @@ impl Command {
         }
     }
 }
+fn execute_commands(
+    commands: &Vec<Command>,
+    stacks: Vec<RefCell<Stack>>,
+    move_multiple_at_once: bool,
+) -> Vec<RefCell<Stack>> {
+    commands.iter().for_each(|command| {
+        let mut to = stacks.get(command.to - 1).unwrap().borrow_mut();
+        let mut from = stacks.get(command.from - 1).unwrap().borrow_mut();
 
-fn main() -> io::Result<()> {
-    let file = File::open("./input").unwrap();
-    let reader = BufReader::new(file);
-    let mut crates_lines: Vec<String> = Vec::new();
-    let mut move_commands_lines: Vec<String> = Vec::new();
-
-    reader.lines().map(|l| l.unwrap()).for_each(|l| {
-        if l.starts_with("move") {
-            move_commands_lines.push(l.clone())
+        if !move_multiple_at_once {
+            for _i in 1..command.number_of_crates + 1 {
+                from.move_crates(1, to.deref_mut());
+            }
         } else {
-            crates_lines.push(l.clone())
+            from.move_crates(command.number_of_crates, to.deref_mut());
         }
     });
+    stacks
+}
 
+fn build_stack(crates_lines: &Vec<String>) -> Vec<RefCell<Stack>> {
     let mut stacks: Vec<RefCell<Stack>> = Vec::new();
     let mut parsed_crate_lines: VecDeque<String> = crates_lines
         .iter()
@@ -105,31 +100,49 @@ fn main() -> io::Result<()> {
         }
         stacks.push(RefCell::new(Stack::new(crates)));
     }
+    stacks
+}
 
-    // println!("stacks: {:?}", stacks);
+fn main() {
+    let input = include_str!("../../inputs/5.txt");
+
+    let mut crates_lines: Vec<String> = Vec::new();
+    let mut move_commands_lines: Vec<String> = Vec::new();
+
+    input.lines().for_each(|l| {
+        if l.starts_with("move") {
+            move_commands_lines.push(l.to_string())
+        } else {
+            crates_lines.push(l.to_string())
+        }
+    });
 
     let commands: Vec<Command> = move_commands_lines.iter().map(Command::parse).collect();
 
-    println!("commands = {:?}", commands);
+    let part1 = execute_commands(&commands, build_stack(&crates_lines), false);
+    let part2 = execute_commands(&commands, build_stack(&crates_lines), true);
 
-    commands.iter().for_each(|command| {
-        let mut to = stacks.get(command.to - 1).unwrap().borrow_mut();
-        let mut from = stacks.get(command.from - 1).unwrap().borrow_mut();
-
-        // 1st task
-        // for _i in 1..command.number_of_crates + 1 {
-        //     println!("Moving a crate from {} to {}", command.from, command.to);
-        //     from.move_crates(1, to.deref_mut());
-        // }
-
-        // 2nd Task
-        println!("Moving a crate from {} to {}", command.from, command.to);
-        from.move_crates(command.number_of_crates, to.deref_mut());
-    });
-
-    stacks.iter().for_each(|stack| {
+    print!("part1: ");
+    part1.iter().for_each(|stack| {
         print!("{}", stack.borrow().crates.last().unwrap().id);
     });
+    print!("\n");
 
-    Ok(())
+    print!("part2: ");
+    part2.iter().for_each(|stack| {
+        print!("{}", stack.borrow().crates.last().unwrap().id);
+    });
+    print!("\n");
 }
+
+/*
+    [D]
+[N] [C]
+[Z] [M] [P]
+ 1   2   3
+
+move 1 from 2 to 1
+move 3 from 1 to 3
+move 2 from 2 to 1
+move 1 from 1 to 2
+ */
