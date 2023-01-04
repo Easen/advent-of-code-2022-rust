@@ -30,16 +30,17 @@ impl CPUInstruction {
 
 type SampledSignalStrength = Vec<i32>;
 
-#[derive(Clone, Copy)]
 struct CPU {
     register_x: i32,
     cycle: usize,
+    crt_buffer: Vec<String>,
 }
 impl CPU {
     pub fn new() -> Self {
         Self {
             register_x: 1,
             cycle: 0,
+            crt_buffer: vec![String::new()],
         }
     }
 
@@ -49,6 +50,7 @@ impl CPU {
         let mut instructions = VecDeque::from_iter(instructions.iter());
         while let Some(instruction) = instructions.pop_front() {
             for _ in 0..instruction.cycles() {
+                self.update_crt();
                 self.cycle += 1;
                 if sample_points.contains(&self.cycle) {
                     samples.push(self.cycle as i32 * self.register_x);
@@ -61,6 +63,21 @@ impl CPU {
         }
         return samples;
     }
+
+    fn update_crt(&mut self) {
+        let mut last_line = self.crt_buffer.last_mut().unwrap();
+        if last_line.len() == 40 {
+            self.crt_buffer.push(String::new());
+            last_line = self.crt_buffer.last_mut().unwrap();
+        }
+        let cursor = last_line.len() as i32;
+        let character = if cursor >= self.register_x - 1 && cursor <= (self.register_x + 1) {
+            '#'
+        } else {
+            '.'
+        };
+        last_line.push(character);
+    }
 }
 
 fn main() {
@@ -68,7 +85,9 @@ fn main() {
     let instructions: Vec<CPUInstruction> = CPUInstruction::from_str(input);
     let mut cpu = CPU::new();
     let signal_strength = cpu.execute_program(instructions);
-    println!("part1: {}", signal_strength.iter().sum::<i32>())
+    println!("part1: {}", signal_strength.iter().sum::<i32>());
+    println!("part2:");
+    cpu.crt_buffer.iter().for_each(|l| println!("{}", l));
 }
 
 #[cfg(test)]
